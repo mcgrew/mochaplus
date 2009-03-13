@@ -66,9 +66,9 @@ MochaUI.PopupMenu = new Class({
 				}
 			});
 		}
-		var menu = document.createElement( 'ul' );
-		menu.id = "clickMenu" + menuCounter++;
-		menu.className = "clickMenu";
+		this.menuEl = document.createElement( 'ul' );
+		this.menuEl.id = "clickMenu" + menuCounter++;
+		this.menuEl.className = "clickMenu";
 		var menuOptions = {
 				rightClick: ( options.button == 'right' ),
 				shift: Boolean( options.shift ),
@@ -76,25 +76,26 @@ MochaUI.PopupMenu = new Class({
 				control: Boolean( options.control ),
 				meta: Boolean( options.meta )
 		}
-		if ( options.title )
+		if ( this.options.title )
 		{
 			title = document.createElement( 'li' )
 			title.className = 'title';
 			title.appendChild( document.createTextNode( options.title ) );
-			menu.appendChild( title );
+			this.menuEl.appendChild( title );
 		}
 		for ( var i in this.options.items )
 		{
-			var item = document.createElement( 'li' );
+			var item = new Element( 'li' );
 			item.className = "menuItem"; 
+			item.set({ id:this.menuEl.id+i });
 			item.appendChild( document.createTextNode( i ) );
-			item.onclick = this.options.items[ i ];
-			menu.appendChild( item );
+			this.menuEl.appendChild( item );
+			item.addEvent( 'click', this.options.items[ i ] );
 		}
-		$( 'menuHolder' ).appendChild( menu );
-		$(menu.id).addEvent( 'mouseup', function( ){ 
-			menu.style.display="none";
-		});
+		$( 'menuHolder' ).appendChild( this.menuEl );
+		$(this.menuEl).addEvent( 'mouseup', function( ){ 
+			this.menuEl.style.display="none";
+		}.bind( this ));
 		if ( menuOptions.rightClick )
 		{
 			$( this.options.element ).addEvent( 'contextmenu', function(){ dispatchCtxMenuEvent(e, 'contextmenu'); return false;} )
@@ -108,14 +109,35 @@ MochaUI.PopupMenu = new Class({
 //					&& Boolean( e.meta ) == menuOptions.meta
 				)
 				{
-					menu.style.top = ( e.page.y ) + "px";
-					menu.style.left = ( e.page.x - 16 ) + "px";
-					menu.style.display = "block";
+					this.menuEl.style.top = ( e.page.y ) + "px";
+					this.menuEl.style.left = ( e.page.x - 16 ) + "px";
+					this.menuEl.style.display = "block";
 				}
-			});
-		helpers.fixIEHover( menu );
-		$$('#'+menu.id+' li.menuItem').each( helpers.fixIEHover )
+			}.bind( this ));
+		this.menuEl.fixIEHover( );
+		this.menuEl.getElements( 'li.menuItem' ).each( function( el ){
+			$(el).fixIEHover( );
+		});
 		return this;
+	},
+	disable: function( item )
+	{
+		var itemEl = this.menuEl.getElement( 'li#'+this.menuEl.id+item )
+		if ( itemEl )
+		{
+			itemEl.addClass( 'disabled' );
+			itemEl.removeEvents( 'click' );
+		}
+	},
+	enable: function( item )
+	{
+		var itemEl = this.menuEl.getElement( 'li#'+this.menuEl.id+item )
+		if ( itemEl )
+		{
+			itemEl.removeClass( 'disabled' );
+			itemEl.removeEvents( 'click' );
+			itemEl.addEvent( 'click', this.options[ item ] );
+		}
 	}
 });// MochaUI.PopupMenu
 
@@ -135,6 +157,9 @@ MochaUI.PopupMenu.addCSS = function( )
 				'padding': '0 10px',
 				'cursor': 'pointer'
 			},
+			'.clickMenu li.disabled': {
+				'color': '#aaa'
+			},
 			'.clickMenu li.title': {
 				'font-weight': 'bold',
 				'border-bottom': '1px solid black',
@@ -145,6 +170,9 @@ MochaUI.PopupMenu.addCSS = function( )
 			
 			'.clickMenu li.menuItem.hover, .clickMenu li.menuItem:hover': {
 					'background-color': '#ddd'
+			},
+			'.clickMenu li.menuItem.disabled.hover, .clickMenu li.menuItem.disabled:hover': {
+					'background-color': 'transparent'
 			}
 		});
 	}

@@ -32,7 +32,7 @@ Options:
 	image - The image to use for the icon. This is set up to use 48x48 icons.
 	container - The element the icon should be placed inside of. Defaults to $('page') (the desktop) if not specified.
 	onRename - A function to be executed when the icon title is changed with icon.rename( )
-	onRemove - A function to be executed when the icon is remove with icon.remove( )
+	onDestroy - A function to be executed when the icon is removed with icon.destroy( )
 	onClick - A function to be executed when the icon image is clicked.
 	
 Returns:
@@ -53,77 +53,84 @@ Example:
 */
 var iconCount = 0;
 MochaUI.Icon = new Class({
+	Implements: Options,
+	options: { 
+		id: null,
+		title: null,
+		container: null,
+		image: null
+	},
 	initialize: function( options )
 	{
-		if ( !options ) options = { };
+		this.setOptions( options );
 		MochaUI.Icon.addCSS( );
-		this.title =  ( options.title ) ? options.title : "";
-		var desktop = ( options.container ) ? $( options.container ) : $( 'page' );
+		var desktop = ( this.options.container ) ? $( this.options.container ) : $( 'page' );
 		var div = document.createElement( 'div' );
 		var img = document.createElement( 'img' );
 		var span = document.createElement( 'span' );
-		div.id = ( options.id ) ? options.id : "icon" + iconCount++;
+		this.options.id = div.id = ( this.options.id ) ? this.options.id : "icon" + iconCount++;
 		div.className ="desktopIcon";
-		img.src = options.image;
+		img.src = this.options.image;
 		img.style.width = "48px";
 		img.style.height = "48px";
-		img.id = this.title + "_icon";
+		img.id = this.options.title + "_icon";
 		span.className = "iconTitle";
-		span.appendChild( document.createTextNode( options.title ) );
+		span.appendChild( document.createTextNode( this.options.title ) );
 		div.appendChild( img );
 		div.appendChild( document.createElement( 'br' ) );
 		div.appendChild( span );
 		desktop.appendChild( div );
-		if ( Browser.Engine.trident4 && /\.png$/.test( options.image ) )
+		if ( Browser.Engine.trident4 && /\.png$/.test( this.options.image ) )
 			fixPNG( img );
 		this.container = div;
 		this.imgTag = img;
 		this.titleDisplay = span;
-		if ( options.onRename )
-			this.onRename = options.onRename;
-		if ( options.onDelete )
-			this.onDelete = options.onDelete;
-		if ( options.onClick )
-			this.addEvent( 'click', options.onclick );
 	},
+	set: function( option, value ){
+		if ( this.options[ option ] )
+			this.options[ option ] = value;
+		if ( option == 'id' )
+			this.container.id = value;
+		if ( option == 'image' )
+			this.imgTag.src = value;
 
+	},
 	rename: function( )
 	{
 		var desktop = document.getElementById( 'page' );
-		var icon = this;
 		var input = document.createElement( 'input' );
 		var doRename = function( e )
 		{
-			icon.title = input.value;
-			icon.container.removeChild( input );
-			while ( icon.titleDisplay.firstChild )
-				icon.titleDisplay.removeChild( icon.titleDisplay.firstChild );
-			icon.titleDisplay.appendChild( document.createTextNode( icon.title ) );
-			icon.titleDisplay.style.display = "";
-			if ( icon.onRename )
-				icon.onRename( );
-		};
+			this.options.title = input.value;
+			this.container.removeChild( input );
+			while ( this.titleDisplay.firstChild )
+				this.titleDisplay.removeChild( this.titleDisplay.firstChild );
+			this.titleDisplay.appendChild( document.createTextNode( this.options.title ) );
+			this.titleDisplay.style.display = "";
+			if ( this.onRename )
+				this.onRename( );
+		}.bind( this );
 		var cancelRename = function( e )
 		{
-			icon.container.removeChild( input );
-			icon.titleDisplay.style.display = "";
-		};
+			this.container.removeChild( input );
+			this.titleDisplay.style.display = "";
+		}.bind( this );
 		input.type = 'text';
 		this.titleDisplay.style.display = "none";
 		this.container.appendChild( input );
 		$(input).addEvent( 'blur', doRename )
 		$(input).addEvent( 'keypress', function( e ){ 
-			if ( e.key == 'enter' ) doRename( );
-			if ( e.key == 'esc' ) cancelRename( );
+			if ( e.key == 'enter' ) doRename( e );
+			if ( e.key == 'esc' ) cancelRename( e );
 		});
-		input.value = this.title;
+		input.value = this.options.title;
 		input.select( );
 	},
 
-	remove: function( )
+	destroy: function( )
 	{
-		if ( this.onRemove )
-			this.onRemove( );
+		if ( this.onDestroy )
+			this.onDestroy( );
 		$('page').removeChild( this.container );
 	},
 
