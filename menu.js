@@ -66,12 +66,12 @@ MochaUI.PopupMenu = new Class({
 	initialize: function( options )
 	{
 		this.setOptions( options );
-		MochaUI.PopupMenu.addCSS( );
+		MochaUI.PopupMenu.addStyle( );
 		if ( !$( 'menuHolder' ) )
-			document.body.appendChild( document.createElement( 'div' ) ).id = 'menuHolder';
+			new Element( 'div', { id:'menuHolder' } ).inject( document.body );
 		if ( !menuCounter )
 		{ // close any open menus when the mouse is pressed.
-			$$( 'body' ).addEvent( 'mousedown', function( )
+			$(document.body).addEvent( 'mousedown', function( )
 			{
 				menus = $( 'menuHolder' ).childNodes;
 				for ( i=0; i < menus.length; i++ )
@@ -80,9 +80,11 @@ MochaUI.PopupMenu = new Class({
 				}
 			});
 		}
-		this.menuEl = document.createElement( 'ul' );
-		this.menuEl.id = "clickMenu" + menuCounter++;
-		this.menuEl.className = "clickMenu";
+		this.menuEl = new Element( 'ul', { 
+			id: 'clickMenu'+menuCounter++,
+			'class':'clickMenu'
+		});
+
 		if ( this.options.width ) this.menuEl.setStyles({ 'width':this.options.width });
 		var menuOptions = {
 				rightClick: ( options.button == 'right' ),
@@ -93,19 +95,18 @@ MochaUI.PopupMenu = new Class({
 		}
 		if ( this.options.title )
 		{
-			title = document.createElement( 'li' )
-			title.className = 'title';
-			title.appendChild( document.createTextNode( options.title ) );
-			this.menuEl.appendChild( title );
+			var title = new Element( 'li', {
+				'class': 'title',
+				'text': options.title
+			}).inject( this.menuEl );
 		}
 		for ( var i in this.options.items )
 		{
-			var item = new Element( 'li' );
-			item.className = "menuItem"; 
-			item.set({ id:this.menuEl.id+i });
-			item.appendChild( document.createTextNode( i ) );
-			this.menuEl.appendChild( item );
-			item.addEvent( 'mouseup', this.options.items[ i ] );
+			new Element( 'li', {
+				'class':'menuItem',
+				'id':this.menuEl.get('id')+i,
+				'text':i
+			}).inject( this.menuEl ).addEvent( 'mouseup', this.options.items[ i ] );
 		}
 		$( 'menuHolder' ).appendChild( this.menuEl );
 		$(this.menuEl).addEvent( 'mouseup', this.hide.bind( this ) );
@@ -180,21 +181,24 @@ MochaUI.PopupMenu = new Class({
 	}
 });// MochaUI.PopupMenu
 
-MochaUI.PopupMenu.addCSS = function( )
+MochaUI.PopupMenu.addStyle = function( )
 {
-	if ( !MochaUI.PopupMenu.CSS )
+	if ( !MochaUI.PopupMenu.Style )
 	{
-		MochaUI.PopupMenu.CSS = new Asset.Style({ priority: 0 });
-		MochaUI.PopupMenu.CSS.addRules({
+		MochaUI.PopupMenu.Style = new Asset.Style({ priority: 0 });
+		MochaUI.PopupMenu.Style.addRules({
 
-			'.clickMenu.hover, .clickMenu:hover': {
+			'.clickMenu:hover': {
+				'display': 'block'
+			},
+			'.clickMenu.hover': {
 				'display': 'block'
 			},
 
 			'.clickMenu li': {
 				'list-style-type': 'none',
 				'padding': '0 10px',
-				'cursor': 'pointer'
+				'cursor': 'pointer',
 			},
 			'.clickMenu li.disabled': {
 				'color': '#aaa'
@@ -207,11 +211,17 @@ MochaUI.PopupMenu.addCSS = function( )
 				'background-color': '#ddd'
 			},
 			
-			'.clickMenu li.menuItem.hover, .clickMenu li.menuItem:hover': {
-					'background-color': '#ddd'
+			'.clickMenu li.menuItem:hover': {
+				'background-color': '#ddd'
 			},
-			'.clickMenu li.menuItem.disabled.hover, .clickMenu li.menuItem.disabled:hover': {
-					'background-color': 'transparent'
+			'.clickMenu li.menuItem.hover': {
+				'background-color': '#ddd'
+			},
+			'.clickMenu li.menuItem.disabled:hover': {
+				'background-color': 'transparent'
+			},
+			'.clickMenu li.menuItem.disabled.hover': {
+				'background-color': 'transparent'
 			}
 		});
 	}
