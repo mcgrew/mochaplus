@@ -76,6 +76,7 @@ MochaUI.Icon = new Class({
 		img.id = this.options.title + "_icon";
 		span.className = "iconTitle";
 		span.appendChild( document.createTextNode( this.options.title ) );
+		$(span).addEvent( 'click', this.rename.bind( this ));
 		div.appendChild( img );
 		div.appendChild( document.createElement( 'br' ) );
 		div.appendChild( span );
@@ -151,12 +152,16 @@ MochaUI.Icon.addCSS = function( )
 				'width': '96px',
 				'padding': '0 10px',
 				'text-align': 'center',
-				'margin': '15px 0 0 15px',
-				'cursor': 'pointer'	
+				'margin': '15px 0 0 15px'
 			},
 
 			'.desktopIcon img': {
-				'padding': '0 24px'
+				'padding': '0 24px',
+				'cursor': 'pointer'	
+			},
+
+			'.desktopIcon .iconTitle': {
+				'cursor': 'text'
 			},
 
 			'.desktopIcon input': {
